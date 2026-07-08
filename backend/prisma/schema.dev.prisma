@@ -1,0 +1,119 @@
+// prisma/schema.dev.prisma
+// DEV schema: SQLite for tests
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  password     String
+  name         String
+  role         String   @default("ASSESSOR")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  leads        Lead[]
+  interactions Interaction[]
+  auditLogs    AuditLog[]
+}
+
+model Client {
+  id           String        @id @default(uuid())
+  name         String
+  email        String?
+  phone        String?
+  cpf          String?       @unique
+  status       String        @default("ATIVO")
+  deletedAt    DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  leads        Lead[]
+  transactions Transaction[]
+  interactions Interaction[]
+
+  @@index([email])
+  @@index([name])
+  @@index([deletedAt])
+}
+
+model Lead {
+  id           String        @id @default(uuid())
+  title        String
+  status       String        @default("NOVO")
+  description  String?
+  value        Float         @default(0.0)
+  proximaAcao  String?
+  dataFollowUp DateTime?
+  deletedAt    DateTime?
+  clientId     String?
+  client       Client?       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  assignedToId String?
+  assignedTo   User?         @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  interactions Interaction[]
+
+  @@index([status])
+  @@index([assignedToId])
+  @@index([assignedToId, status])
+  @@index([dataFollowUp])
+  @@index([deletedAt])
+}
+
+model Transaction {
+  id          String    @id @default(uuid())
+  description String
+  amount      Float
+  type        String
+  status      String    @default("PENDENTE")
+  date        DateTime  @default(now())
+  deletedAt   DateTime?
+  clientId    String
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([clientId])
+  @@index([status])
+  @@index([date])
+  @@index([deletedAt])
+}
+
+model Interaction {
+  id        String   @id @default(uuid())
+  type      String
+  content   String
+  date      DateTime @default(now())
+  clientId  String?
+  client    Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  leadId    String?
+  lead      Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([leadId])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  entity    String
+  entityId  String
+  action    String
+  changes   String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@index([userId])
+}

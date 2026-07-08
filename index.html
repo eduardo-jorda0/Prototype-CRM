@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prototype CRM - Painel de Inicialização</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: #111827;
+      --border-color: #1f2937;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .panel {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 520px;
+      padding: 40px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .brand-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .status-container {
+      background-color: #171e30;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 32px;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .status-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .status-label {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .status-value {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+
+    .indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .ind-offline { background-color: var(--danger); }
+    .ind-checking { background-color: var(--warning); animation: pulse 1.2s infinite; }
+    .ind-online { background-color: var(--success); }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease-in-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background-color: #374151;
+      color: var(--text-main);
+      border: 1px solid #4b5563;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background-color: #4b5563;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-description {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    .action-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .console-box {
+      margin-top: 24px;
+      background-color: #030712;
+      border: 1px solid #1f2937;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #10b981;
+      max-height: 120px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      display: none;
+    }
+
+    .spinner {
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      border-top: 2px solid white;
+      width: 16px;
+      height: 16px;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="panel">
+    <div class="header">
+      <div class="brand-title">Prototype CRM</div>
+      <div class="brand-subtitle">Painel de Inicialização</div>
+    </div>
+
+    <div class="status-container">
+      <div class="status-row">
+        <span class="status-label">Servidor Backend (Porta 5000):</span>
+        <span class="status-value" id="status-backend">
+          <span class="indicator ind-checking"></span> Verificando...
+        </span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Interface Frontend (Porta 5173):</span>
+        <span class="status-value" id="status-frontend">
+          <span class="indicator ind-checking"></span> Verificando...
+        </span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <div class="action-group">
+        <button id="btn-demo" class="btn btn-primary" onclick="startDemo()">
+          <span class="spinner" id="spinner-demo"></span>
+          Iniciar Ambiente de Demonstração
+        </button>
+        <div class="btn-description">Preenche o banco de dados local com dados de simulação e abre o CRM.</div>
+      </div>
+
+      <div class="action-group">
+        <button id="btn-clean" class="btn btn-secondary" onclick="startClean()">
+          <span class="spinner" id="spinner-clean"></span>
+          Iniciar Sistema Limpo
+        </button>
+        <div class="btn-description">Abre o sistema diretamente sem alterar os dados existentes.</div>
+      </div>
+    </div>
+
+    <div class="console-box" id="console-output"></div>
+  </div>
+
+  <script>
+    const BACKEND_URL = window.location.protocol === 'file:' ? 'http://localhost:5000' : window.location.origin;
+    const FRONTEND_URL = 'http://localhost:5173';
+    
+    let backendOnline = false;
+    let frontendOnline = false;
+    let checkingInterval = null;
+
+    function logConsole(message) {
+      const consoleBox = document.getElementById('console-output');
+      consoleBox.style.display = 'block';
+      consoleBox.textContent += message + '\n';
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
+
+    // Check if opened via file:// protocol
+    if (window.location.protocol === 'file:') {
+      logConsole('⚠️ [AVISO] Painel aberto via arquivo local (file://).');
+      logConsole('Alguns navegadores bloqueiam requisições de segurança entre arquivos locais e servidores. Se os status ficarem vermelhos mesmo com os terminais ativos, use o atalho "iniciar.bat" para carregar o painel diretamente pelo servidor local.');
+    }
+
+    async function checkServer(url) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1500);
+        const res = await fetch(url, { signal: controller.signal, mode: 'no-cors' });
+        clearTimeout(timeoutId);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function updateStatuses() {
+      const bStatus = await checkServer(`${BACKEND_URL}/health`);
+      backendOnline = bStatus;
+      const bEl = document.getElementById('status-backend');
+      if (bStatus) {
+        bEl.innerHTML = '<span class="indicator ind-online"></span> Ativo';
+      } else {
+        bEl.innerHTML = '<span class="indicator ind-offline"></span> Aguardando Inicialização...';
+      }
+
+      const fStatus = await checkServer(FRONTEND_URL);
+      frontendOnline = fStatus;
+      const fEl = document.getElementById('status-frontend');
+      if (fStatus) {
+        fEl.innerHTML = '<span class="indicator ind-online"></span> Ativo';
+      } else {
+        fEl.innerHTML = '<span class="indicator ind-offline"></span> Aguardando Inicialização...';
+      }
+    }
+
+    // Periodically update statuses
+    updateStatuses();
+    checkingInterval = setInterval(updateStatuses, 2000);
+
+    async function waitForServices() {
+      logConsole('Aguardando servidores estarem totalmente prontos...');
+      for (let i = 0; i < 30; i++) {
+        await updateStatuses();
+        if (backendOnline && frontendOnline) {
+          return true;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      return false;
+    }
+
+    async function startDemo() {
+      const btnDemo = document.getElementById('btn-demo');
+      const btnClean = document.getElementById('btn-clean');
+      const spinner = document.getElementById('spinner-demo');
+      
+      btnDemo.disabled = true;
+      btnClean.disabled = true;
+      spinner.style.display = 'inline-block';
+      
+      logConsole('Iniciando o ambiente de demonstração...');
+      
+      // Wait for backend to be online first
+      if (!backendOnline) {
+        logConsole('Servidor backend offline. Aguardando inicialização automática...');
+        const ready = await waitForServices();
+        if (!ready) {
+          logConsole('Erro: Os servidores demoraram muito para iniciar.');
+          resetButtons();
+          return;
+        }
+      }
+
+      logConsole('Executando o seed de dados no banco local...');
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/system/seed`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        if (response.ok && data.success) {
+          logConsole('Seed executado com sucesso!');
+          logConsole('Redirecionando para o frontend...');
+          setTimeout(() => {
+            window.location.href = FRONTEND_URL;
+          }, 1000);
+        } else {
+          logConsole('Erro no seed: ' + (data.error || 'Erro desconhecido'));
+          resetButtons();
+        }
+      } catch (err) {
+        logConsole('Falha na requisição de seed: ' + err.message);
+        resetButtons();
+      }
+    }
+
+    async function startClean() {
+      const btnDemo = document.getElementById('btn-demo');
+      const btnClean = document.getElementById('btn-clean');
+      const spinner = document.getElementById('spinner-clean');
+      
+      btnDemo.disabled = true;
+      btnClean.disabled = true;
+      spinner.style.display = 'inline-block';
+      
+      logConsole('Iniciando sistema limpo...');
+      
+      if (!frontendOnline || !backendOnline) {
+        logConsole('Aguardando inicialização dos servidores...');
+        const ready = await waitForServices();
+        if (!ready) {
+          logConsole('Erro: Os servidores demoraram muito para iniciar.');
+          resetButtons();
+          return;
+        }
+      }
+
+      logConsole('Redirecionando para o frontend...');
+      window.location.href = FRONTEND_URL;
+    }
+
+    function resetButtons() {
+      document.getElementById('btn-demo').disabled = false;
+      document.getElementById('btn-clean').disabled = false;
+      document.getElementById('spinner-demo').style.display = 'none';
+      document.getElementById('spinner-clean').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
